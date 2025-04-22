@@ -1,0 +1,455 @@
+openapi: 3.1.0
+info:
+  title: ユーザー管理API
+  description: このAPIはユーザーリソースに対するCRUD操作を提供します。
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8787/v1
+    description: ローカル環境
+  - url: https://dev-api.example.com/v1
+    description: 開発環境
+
+tags:
+  - name: health
+    description: ヘルスチェック
+  - name: users
+    description: ユーザー管理操作
+
+paths:
+  /health:
+    get:
+      summary: ヘルスチェック
+      description: ヘルスステータスを返します
+      operationId: healthCheck
+      tags:
+        - health
+      responses:
+        "200":
+          description: APIは正常に動作しています
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [OK]
+                required:
+                  - status
+                additionalProperties: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "406":
+          $ref: "#/components/responses/NotAcceptable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        default:
+          $ref: "#/components/responses/ServerError"
+
+  /users:
+    get:
+      summary: ユーザー一覧の取得
+      description: 登録されているすべてのユーザーの一覧を取得します
+      operationId: getUserList
+      tags:
+        - users
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "406":
+          $ref: "#/components/responses/NotAcceptable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        default:
+          $ref: "#/components/responses/ServerError"
+    post:
+      summary: 新規ユーザーの作成
+      description: 新しいユーザーを作成します
+      operationId: createUser
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "200":
+          description: ユーザー作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "406":
+          $ref: "#/components/responses/NotAcceptable"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        default:
+          $ref: "#/components/responses/ServerError"
+
+  /users/{userId}:
+    get:
+      summary: ユーザー情報の取得
+      description: 指定されたIDのユーザー情報を取得します
+      operationId: getUser
+      tags:
+        - users
+      parameters:
+        - $ref: "#/components/parameters/UserIdParam"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "406":
+          $ref: "#/components/responses/NotAcceptable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        default:
+          $ref: "#/components/responses/ServerError"
+    put:
+      summary: ユーザー情報の更新
+      description: 指定されたIDのユーザー情報を更新します
+      operationId: updateUser
+      tags:
+        - users
+      parameters:
+        - $ref: "#/components/parameters/UserIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "406":
+          $ref: "#/components/responses/NotAcceptable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        default:
+          $ref: "#/components/responses/ServerError"
+    delete:
+      summary: ユーザーの削除
+      description: 指定されたIDのユーザーを削除します
+      operationId: deleteUser
+      tags:
+        - users
+      parameters:
+        - $ref: "#/components/parameters/UserIdParam"
+      responses:
+        "204":
+          description: 削除成功
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "406":
+          $ref: "#/components/responses/NotAcceptable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        default:
+          $ref: "#/components/responses/ServerError"
+
+components:
+  schemas:
+    UserId:
+      type: string
+      format: ulid
+      description: ユーザーの一意識別子
+      example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+      pattern: "^[0-9a-hjkmnp-zA-HJKMNP-Z]{26}$"
+
+    UserBase:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザー名
+          minLength: 3
+          maxLength: 50
+          example: "john_doe"
+          pattern: ^.{3,50}$
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+          maximum: 100
+          pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+          example: "john.doe@example.com"
+      required:
+        - name
+        - email
+
+    UserCreate:
+      allOf:
+        - $ref: "#/components/schemas/UserBase"
+        - type: object
+          properties:
+            password:
+              type: string
+              format: password
+              description: パスワード
+              minLength: 8
+              maxLength: 50
+              writeOnly: true
+              pattern: ^.{8,50}$
+          required:
+            - password
+
+    User:
+      allOf:
+        - $ref: "#/components/schemas/UserBase"
+        - type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/UserId"
+          required:
+            - id
+
+    UserList:
+      type: object
+      properties:
+        items:
+          type: array
+          minItems: 0
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+          description: ユーザーの総数
+          minimum: 0
+          example: 100
+        page:
+          type: integer
+          description: 現在のページ番号
+          minimum: 1
+          example: 1
+        limit_per_page:
+          type: integer
+          description: 1ページあたりのアイテム数
+          minimum: 1
+          example: 10
+      required:
+        - items
+        - total
+        - page
+        - limit_per_page
+      additionalProperties: false
+
+    AppError:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTPステータスコード
+          minimum: 100
+          maximum: 599
+        title:
+          type: string
+          description: エラータイトル
+        detail:
+          type: string
+          description: 詳細エラー情報
+        code:
+          type: string
+          description: エラーコード
+      required:
+        - status
+        - title
+      examples:
+        - status: "500"
+          title: "InternalServerError"
+          detail: "エラーが発生しました"
+
+  parameters:
+    UserIdParam:
+      name: userId
+      in: path
+      description: ユーザーID
+      required: true
+      schema:
+        $ref: "#/components/schemas/UserId"
+
+    OffsetParam:
+      name: offset
+      in: query
+      description: 取得開始位置
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+    LimitParam:
+      name: limit
+      in: query
+      description: 取得上限
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+
+  responses:
+    BadRequest:
+      description: リクエストが不正です
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 400
+            title: "BadRequest"
+            details: "有効なメールアドレス形式ではありません"
+
+    Unauthorized:
+      description: 認証が必要です
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 401
+            title: "Unauthorized"
+            details: "認証が必要です"
+
+    Forbidden:
+      description: 権限がありません
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 403
+            title: "Forbidden"
+            details: "このリソースにアクセスする権限がありません"
+
+    NotFound:
+      description: リソースが見つかりません
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 404
+            title: "NotFound"
+            details: "指定されたリソースは存在しません"
+
+    NotAcceptable:
+      description: 要求されたフォーマットでレスポンスを返すことができません
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 406
+            title: "NotAcceptable"
+            details: "要求されたフォーマットでレスポンスを返すことができません"
+
+    Conflict:
+      description: リソースの競合が発生しました
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 409
+            title: "Conflict"
+            details: "リソースの競合が発生しました"
+
+    TooManyRequests:
+      description: リクエスト制限を超過しました
+      headers:
+        Retry-After:
+          description: リクエストを再試行するまでの秒数
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 429
+            title: "TooManyRequests"
+            details: "リクエスト制限を超過しました。しばらく経ってから再試行してください"
+
+    ServerError:
+      description: サーバーエラーが発生しました
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
+          example:
+            status: 500
+            title: "InternalServerError"
+            details: "サーバー内部でエラーが発生しました"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWTベースの認証です
+
+security:
+  - BearerAuth: []
