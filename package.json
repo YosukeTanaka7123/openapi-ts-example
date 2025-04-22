@@ -2,6 +2,7 @@
   "name": "openapi-ts-example",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "generate:openapi": "tsx openapi-ts.config.ts && orval",
     "dev": "tsx watch src/main.ts",
